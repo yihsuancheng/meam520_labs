@@ -1,7 +1,7 @@
-# MEAM520: Introduction to Robotics
-### Date Modified: 08/29/2022
+# MEAM5200: Introduction to Robotics
+### Date Modified: 09/01/2023
 
-Maintainers: Contact 2023 Spring semester TAs
+Maintainers: Contact 2023 Fall semester TAs
 
 # Subdirectory Structure:
 - `core`: contains support code we provide to you, such as helper functions and interfaces for interacting with the robot (either simulated or real!)
