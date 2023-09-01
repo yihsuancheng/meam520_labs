@@ -1,4 +1,4 @@
-# MEAM5200: Introduction to Robotics
+# MEAM520: Introduction to Robotics
 ### Date Modified: 09/01/2023
 
 Maintainers: Contact 2023 Fall semester TAs
