@@ -20,3 +20,8 @@ If your problem is solved, you don't need to modify the configuration file anymo
 6. Now you should be able to edit and save files.
    
 - Solution 2: Try using some other editor like vscode. You can always use 'nano' in the terminal if nothing else works.
+
+
+### No module named 'core'
+
+Please make sure the folder name is **meam520_labs** exactly, not "meam5200_labs" or "meam5200-labs"
