@@ -4,10 +4,18 @@
 
 ### Error with optimizing VMWare Player 17.0
 
-- Solution 1: Some students were experiencing this issue with VMWare Player 17.0. You may want to install VMWare Player 16.0 instead.
-- Solution 2: You can modify the configuration file directly. You need to first find where the virtual machine is installed (build a new virtual machine and find the default path). 
-Then find the vmx (configuration) file. Open the file with a text editor or IDE. Once you open it, you can modify the configuration file easily and corresponding field is obvious by name. 
+It's come to our attention that some of you are having issues of accessing VM settings on VMware Workstation Player 17. You might follow the instructions below to fix this issue.
+
+- Solution 1: Modifying the configuration file directly.
+
+1. Make sure you close the VMware app, then open the folder where the MEAM5200 virtual machine is located.
+2. In that folder, For Linux, locate one file with the extension .vmx; For Windows, locate one file with type "VMware virtual machine configuration"
+3. Open it with any text editor or IDE, for example, NotePad on Windows.
+4. If the value for virtualhw.version is not "19" , please change it to "19" and save the file.
+5. Reopen VMware software, try to edit settings to see if it works.
 If your problem is solved, you don't need to modify the configuration file anymore. Otherwise, you can edit number of cores and storage size directly in the vmx file: [ref](https://kb.vmware.com/s/article/205n).
+
+- Solution 2: You may want to install VMWare Player 16.0 instead.
 
 ### Atom Editor does not Save Python code
 
