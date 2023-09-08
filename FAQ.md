@@ -33,7 +33,7 @@ If your problem is solved, you don't need to modify the configuration file anymo
 
 - Solution 2: You may want to install VMWare Player 16.0 instead.
 
-### Incorrect username and password for logging in Virtual PC Lab
+### Incorrect username and password for logging into Virtual PC Lab
 
 You should use your PennKey username and password. If it does not work, you need to change your password and try again. 
 
