@@ -92,3 +92,9 @@ on the second paragraph second line it will give you an ip (inet: IP ADDRESS)
 `export ROS_HOSTNAME=IP_OF_LAPTOP`
 
 - Replace the IP_OF_LAPTOP with your own IP address
+
+### `AttributeError: module 'numpy' has no attribute 'float'`
+
+np.float is deprecated in numpy newer than 1.24. The default numpy version for the virtual machine environment is 1.17, so our code still use np.float. The reason your are getting this error is that you are using numpy >= 1.24 in which np.float does not exist.
+
+Solution: downgrade numpy to versions <1.24
