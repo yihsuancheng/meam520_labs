@@ -54,6 +54,7 @@ def show_all_FK(state):
     show_pose(T0e,"endeffector")
     for i in range(7):
         show_joint_position(joints,i)
+    return joints, T0e
 
 
 ########################
@@ -67,6 +68,8 @@ configurations = [
     np.array([ 0,    0,     0, -pi/2,     0, pi/2, pi/4 ]),
     np.array([ pi/2, 0,  pi/4, -pi/2, -pi/2, pi/2,    0 ]),
     np.array([ 0,    0, -pi/2, -pi/4,  pi/2, pi,   pi/4 ]),
+#    np.array([0, 0, pi/4, -0.07, 0, pi/2, 0])
+    
 ]
 
 ####################
@@ -87,6 +90,9 @@ if __name__ == "__main__":
         # Try editing the configurations list above to do more testing!
         for i, q in enumerate(configurations):
             print("Moving to configuration " + str(i) + "...")
+            joints, T0e = show_all_FK({'position': q})
+            print("Joint configurations: ", joints)
+            print("End effector pose: ", T0e)
             arm.safe_move_to_position(q)
             if i < len(configurations) - 1:
                 input("Press Enter to move to next configuration...")

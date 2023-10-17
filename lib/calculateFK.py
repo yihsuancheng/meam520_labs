@@ -1,5 +1,6 @@
 import numpy as np
-from math import pi
+from math import pi, cos, sin
+import math
 
 class FK():
 
@@ -9,7 +10,18 @@ class FK():
         # useful in computing the forward kinematics. The data you will need
         # is provided in the lab handout
 
-        pass
+        '''self.z1, self.z2, self.z3 = 0.141, 0.192, 0.195
+        self.z4, self.z5, self.z6, self.z7 = 0.121, 0.0825, -0.051, -0.159
+        self.x1, self.x2, self.x3, self.x4 = 0.0825, 0.125, 0.259, 0.088
+        self.y1 = 0.015'''
+
+    def get_transformation_matrix(self, angle, d, a, alpha):
+        return np.array([
+            [cos(angle), -sin(angle)*cos(alpha), sin(angle)*sin(alpha), a*cos(angle)],
+            [sin(angle), cos(angle)*cos(alpha), -cos(angle)*sin(alpha), a*sin(angle)],
+            [0, sin(alpha), cos(alpha), d],
+            [0, 0, 0, 1]
+        ])
 
     def forward(self, q):
         """
@@ -26,11 +38,52 @@ class FK():
         """
 
         # Your Lab 1 code starts here
+     #   A_W_0 = self.get_transformation_matrix(0, self.z1, 0, 0)
+        A_0_1 = self.get_transformation_matrix(q[0], 0.192+0.142, 0, -pi/2)
+        A_1_2 = self.get_transformation_matrix(q[1], 0, 0, pi/2)
+        A_2_3 = self.get_transformation_matrix(q[2], 0.195+0.121, 0.0825, pi/2)
+        A_3_4 = self.get_transformation_matrix(q[3] + pi, 0, 0.0825, pi/2)
+        A_4_5 = self.get_transformation_matrix(q[4], 0.125+0.259, 0, -pi/2)  
+        A_5_6 = self.get_transformation_matrix(q[5] - pi, 0, 0.088, pi/2)
+        A_6_7 = self.get_transformation_matrix(q[6]-pi/4, 0.051+0.159, 0, 0)
+        
+        T0e =  np.dot(np.dot(np.dot(np.dot(np.dot(np.dot(A_0_1, A_1_2),A_2_3), A_3_4), 
+                      A_4_5), A_5_6), A_6_7)
 
-        jointPositions = np.zeros((8,3))
-        T0e = np.identity(4)
 
-        # Your code ends here
+        #jointPositions = np.zeros((8,3))
+        #T0e = np.identity(4)'''
+
+        T_1 = A_0_1
+        T_2 = np.dot(A_0_1,A_1_2)
+        T_3 = np.dot(T_2, A_2_3)
+        T_4 = np.dot(T_3, A_3_4)
+        T_5 = np.dot(T_4, A_4_5)
+        T_6 = np.dot(T_5, A_5_6)
+        T_7 = np.dot(T_6, A_6_7)
+
+        P_1 = np.dot(T_1, np.array([0,0.192,0,1]))
+        P_2 = np.dot(T_2, np.array([0,0,0,1]))
+        P_3 = np.dot(T_3, np.array([-0.0825, -0.121, 0, 1]))
+        P_4 = np.dot(T_4, np.array([-0.0825, 0, 0, 1]))
+        P_5 = np.dot(T_5, np.array([0, 0.259, 0, 1]))
+        P_6 = np.dot(T_6, np.array([-0.088, -0.015, 0, 1]))
+        P_7 = np.dot(T_7, np.array([0,0,-0.159,1]))
+        P_8 = np.dot(T0e, np.array([0,0,0,1]))
+
+        jointPositions = np.array([
+            
+            [P_1[0], P_1[1], P_1[2]],
+            [P_2[0], P_2[1], P_2[2]],
+            [P_3[0], P_3[1], P_3[2]],
+            [P_4[0], P_4[1], P_4[2]],
+            [P_5[0], P_5[1], P_5[2]],
+            [P_6[0], P_6[1], P_6[2]],
+            [P_7[0], P_7[1], P_7[2]],
+            [P_8[0], P_8[1], P_8[2]]
+            
+        ])
+
 
         return jointPositions, T0e
 
@@ -76,3 +129,4 @@ if __name__ == "__main__":
     
     print("Joint Positions:\n",joint_positions)
     print("End Effector Pose:\n",T0e)
+    print(joint_positions.shape, T0e.shape)

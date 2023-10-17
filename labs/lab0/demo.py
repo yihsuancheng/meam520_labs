@@ -28,6 +28,6 @@ q = arm.neutral_position()
 arm.safe_move_to_position(q)
 arm.open_gripper()
 
-q = np.array([0,-1,0,-1,0,1,1]) # TODO: try changing this!
+q = np.array([pi/4,0,0,-pi/2,0,pi/2,pi/4]) # TODO: try changing this!
 arm.safe_move_to_position(q)
 arm.close_gripper()
