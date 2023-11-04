@@ -23,5 +23,17 @@ def IK_velocity(q_in, v_in, omega_in):
 
     v_in = v_in.reshape((3,1))
     omega_in = omega_in.reshape((3,1))
+
+    J = calcJacobian(q_in)
+    desired_velocity = np.vstack((v_in, omega_in))
+
+    valid_indices = ~np.isnan(desired_velocity)
+    desired_velocity = desired_velocity[valid_indices].reshape(-1,1)
+    J = J[valid_indices[:,0], :]
+    #psuedo_inverse = np.dot(J.T, np.linal   g.inv(np.dot(J,J.T)))
+    #dq = np.dot(np.linalg.pinv(J), desired_velocity)
+    dq, _, _, _ = np.linalg.lstsq(J, desired_velocity, rcond=None)
+    dq = dq.reshape(-1)
     
     return dq
+

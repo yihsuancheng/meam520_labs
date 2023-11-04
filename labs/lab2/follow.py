@@ -67,6 +67,14 @@ class JacobianDemo():
         """
 
         x0 = np.array([0.307, 0, 0.487]) # corresponds to neutral position
+        xdes = JacobianDemo.x0 + np.array([0, ry*(sin(f*t)), rz*cos(f*t) - rz])
+        vdes = np.array([0,ry*f*(cos(f*t)),-rz*f*sin(f*t)])
+
+        
+        
+        #xdes = x0 + np.array([0, ry*sin(f*t), rz*cos(f*t)])
+        #vdes = np.array([0, ry*f*cos(f*t), -rz*f*sin(f*t)])
+        return xdes, vdes
 
         ## STUDENT CODE GOES HERE
 
@@ -94,10 +102,16 @@ class JacobianDemo():
         ## STUDENT CODE GOES HERE
 
         # TODO: replace these!
-        xdes = JacobianDemo.x0
-        vdes = np.array([0,0,0])
+        #xdes = JacobianDemo.x0
+        #vdes = np.array([0,0,0])
+        
 
         ## END STUDENT CODE
+        x0 = np.array([0.307, 0, 0.487])
+         # Direction of movement (e.g., along x-axis)
+
+        xdes = x0 + np.array([0, sin(f*t)*L, 0])
+        vdes = np.array([0, L*f*cos(f*t), 0])
 
         return xdes, vdes
 
@@ -130,12 +144,13 @@ class JacobianDemo():
 
                 # get current end effector position
                 q = state['position']
-                joints, T0e = self.fk.forward(q)
+                joints, T_array, T0e = self.fk.forward(q)
                 x = (T0e[0:3,3])
 
                 # First Order Integrator, Proportional Control with Feed Forward
                 kp = 20
                 v = vdes + kp * (xdes - x)
+            
 
                 # Velocity Inverse Kinematics
                 dq = IK_velocity(q,v,np.array([np.nan,np.nan,np.nan]))

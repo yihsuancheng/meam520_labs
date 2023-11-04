@@ -11,7 +11,19 @@ def FK_velocity(q_in, dq):
 
     ## STUDENT CODE GOES HERE
 
-    velocity = np.zeros((6, 1))
+    #velocity = np.zeros((6, 1))
+
+    J = calcJacobian(q_in)
+
+    velocity = np.matmul(J, np.array(dq).reshape(7,1))
 
 
     return velocity
+
+if __name__ == "__main__":
+    q = np.array([0, 0, 0, -np.pi/2, 0, np.pi/2, np.pi/4])
+    dq = np.array([0,1,0,0,0,0,0])
+    J = calcJacobian(q)
+    vel = FK_velocity(q,dq)
+    print("Jacobian: ", J)
+    print("end effector velocity: ", vel)

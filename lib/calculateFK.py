@@ -62,6 +62,8 @@ class FK():
         T_6 = np.dot(T_5, A_5_6)
         T_7 = np.dot(T_6, A_6_7)
 
+        T_array = [T_1, T_2, T_3, T_4, T_5, T_6, T_7]
+
         P_1 = np.dot(T_1, np.array([0,0.192,0,1]))
         P_2 = np.dot(T_2, np.array([0,0,0,1]))
         P_3 = np.dot(T_3, np.array([-0.0825, -0.121, 0, 1]))
@@ -85,7 +87,7 @@ class FK():
         ])
 
 
-        return jointPositions, T0e
+        return jointPositions, T_array, T0e
 
     # feel free to define additional helper methods to modularize your solution for lab 1
 
