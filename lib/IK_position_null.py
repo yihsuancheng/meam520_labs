@@ -71,6 +71,12 @@ class IK:
         displacement = np.zeros(3)
         axis = np.zeros(3)
 
+        displacement = target[:3,3] - current[:3,3]
+
+        R_current = current[:3,:3]
+        R_target = target[:3,:3]
+        axis = calcAngDiff(R_target, R_current)
+
         ## END STUDENT CODE
         return displacement, axis
 
@@ -100,6 +106,15 @@ class IK:
         angle = 0
 
         ## END STUDENT CODE
+        distance = np.linalg.norm(G[:3,3] - H[:3,3])
+
+        R_G = G[:3,:3]
+        R_H = H[:3,:3]
+        R_rel = R_G.T @ R_H  #R_H = R_G*R_rel -> R_rel = R_G^-1*R_G, R_G^-1 = R_G.T
+
+        trace_value = np.trace(R_rel)
+        angle = np.arccos(np.clip((trace_value - 1) / 2, -1.0, 1.0))
+
         return distance, angle
 
     def is_valid_solution(self,q,target):
@@ -124,6 +139,19 @@ class IK:
         message = "Solution found/not found + reason"
 
         ## END STUDENT CODE
+        # (a) Check if the joint angles are within the joint limits
+        if not all(IK.lower <= q) or not all(q <= IK.upper):
+            message = "Joints limit exceeded"
+            return success, message
+        
+        # (b) Compute the forward kinematics to get the end effector pose
+        jointPositions, T0e  = IK.fk.forward(q)
+        distance, angle = self.distance_and_angle(T0e, target)
+
+        if distance <= self.linear_tol and angle <= self.angular_tol:
+            success = True
+            message = "Solution found within tolerances"
+
         return success, message
 
     ####################
@@ -150,6 +178,21 @@ class IK:
 
         ## STUDENT CODE STARTS HERE
         dq = np.zeros(7)
+        jointPositions, T0e = IK.fk.forward(q)
+        displacement, axis = IK.displacement_and_axis(target, T0e) # Compute displacement and axis of rotation.
+
+        J = calcJacobian(q)
+
+        if method == "J_pseudo":
+            J_inv = np.linalg.pinv(J)
+            dq = J_inv @ np.concatenate((displacement, axis))
+
+        elif method == "J_trans":
+            J_trans = J.T
+            dq = J_trans @ np.concatenate((displacement, axis))
+
+        else:
+            raise ValueError("Method must be 'J_pseudo' or 'J_trans'") 
 
         ## END STUDENT CODE
         return dq
@@ -206,7 +249,7 @@ class IK:
 
         q = seed
         rollout = []
-
+        curr_step = 0
         ## STUDENT CODE STARTS HERE
 
         
@@ -221,12 +264,20 @@ class IK:
             dq_center = IK.joint_centering_task(q)
 
             ## Task Prioritization
+            J = calcJacobian(q)
+            J_pinv = np.linalg.pinv(J)
+            N = np.eye(J.shape[1]) - np.dot(J_pinv, J)
+            dq_null = N @ dq_center
+
+            dq = dq_ik + dq_null
 
             # Check termination conditions
-            break
+            if (curr_step >= self.max_steps) or (np.linalg.norm(dq) < self.min_step_size):
+                break
 
             # update q
-            
+            curr_step += 1
+            q += alpha * dq
 
         ## END STUDENT CODE
 

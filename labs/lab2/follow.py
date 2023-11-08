@@ -144,7 +144,7 @@ class JacobianDemo():
 
                 # get current end effector position
                 q = state['position']
-                joints, T_array, T0e = self.fk.forward(q)
+                joints, T0e = self.fk.forward(q)
                 x = (T0e[0:3,3])
 
                 # First Order Integrator, Proportional Control with Feed Forward

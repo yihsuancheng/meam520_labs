@@ -60,7 +60,7 @@ class JacobianDemo():
     ## TRAJECTORIES ##
     ##################
 
-    def eight(t,fx=0.3,fy=0.6,rx=.1,ry=.1):
+    def eight(t,fx=0.5,fy=1,rx=.1,ry=.1):
         """
         Calculate the position and velocity of the figure 8 trajector
 
@@ -83,9 +83,18 @@ class JacobianDemo():
         xdes = x0 + np.array([rx*sin(fx*t),ry*sin(fy*t),0])
         vdes = np.array([rx*fx*cos(fx*t),ry*fy*cos(fy*t),0])
 
-        # TODO: replace these!
+        '''# TODO: replace these!
         Rdes = np.diag([1., -1., -1.])
-        ang_vdes = 0.0 * np.array([1.0, 0.0, 0.0])
+        ang_vdes = 0.0 * np.array([1.0, 0.0, 0.0])'''
+
+        ang = -np.pi + (np.pi/4.0) * sin(fx*t)
+        print(ang)
+        r = ang * np.array([1.0, 0.0, 0.0])
+        Rdes = rotvec_to_matrix(r)
+
+        ang_v = (np.pi/4.0) * fx * cos(fx*t)
+        ang_vdes = ang_v * np.array([1.0, 0.0, 0.0])
+
 
         return Rdes, ang_vdes, xdes, vdes
 
@@ -119,7 +128,7 @@ class JacobianDemo():
         
         return Rdes, ang_vdes, xdes, vdes
 
-    def line(t,f=0.1,L=.15):
+    def line(t,f=1,L=.15):
         """
         Calculate the position and velocity of the line trajector
 

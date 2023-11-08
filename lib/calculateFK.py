@@ -87,7 +87,7 @@ class FK():
         ])
 
 
-        return jointPositions, T_array, T0e
+        return jointPositions, T0e
 
     # feel free to define additional helper methods to modularize your solution for lab 1
 
@@ -119,6 +119,34 @@ class FK():
         # STUDENT CODE HERE: This is a function needed by lab 2
 
         return()
+    
+    def compute_T_array(self, q):
+        A_0_1 = self.get_transformation_matrix(q[0], 0.192+0.142, 0, -pi/2)
+        A_1_2 = self.get_transformation_matrix(q[1], 0, 0, pi/2)
+        A_2_3 = self.get_transformation_matrix(q[2], 0.195+0.121, 0.0825, pi/2)
+        A_3_4 = self.get_transformation_matrix(q[3] + pi, 0, 0.0825, pi/2)
+        A_4_5 = self.get_transformation_matrix(q[4], 0.125+0.259, 0, -pi/2)  
+        A_5_6 = self.get_transformation_matrix(q[5] - pi, 0, 0.088, pi/2)
+        A_6_7 = self.get_transformation_matrix(q[6]-pi/4, 0.051+0.159, 0, 0)
+        
+        T0e =  np.dot(np.dot(np.dot(np.dot(np.dot(np.dot(A_0_1, A_1_2),A_2_3), A_3_4), 
+                      A_4_5), A_5_6), A_6_7)
+
+
+        #jointPositions = np.zeros((8,3))
+        #T0e = np.identity(4)'''
+
+        T_1 = A_0_1
+        T_2 = np.dot(A_0_1,A_1_2)
+        T_3 = np.dot(T_2, A_2_3)
+        T_4 = np.dot(T_3, A_3_4)
+        T_5 = np.dot(T_4, A_4_5)
+        T_6 = np.dot(T_5, A_5_6)
+        T_7 = np.dot(T_6, A_6_7)
+
+        T_array = [T_1, T_2, T_3, T_4, T_5, T_6, T_7]
+        return T_array
+
     
 if __name__ == "__main__":
 
