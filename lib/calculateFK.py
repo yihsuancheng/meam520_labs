@@ -160,3 +160,6 @@ if __name__ == "__main__":
     print("Joint Positions:\n",joint_positions)
     print("End Effector Pose:\n",T0e)
     print(joint_positions.shape, T0e.shape)
+    print(joint_positions[0].shape)
+    print(joint_positions[0])
+   

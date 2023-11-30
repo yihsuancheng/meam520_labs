@@ -26,6 +26,16 @@ def detectCollisionOnce(linePt1, linePt2, box):
     :param box [xmin, ymin, zmin, xmax, ymax, zmax]:
     :return: true if collision, otherwise false
     """
+
+    
+    # Check if linePt1 and linePt2 are the same point
+    if np.array_equal(linePt1, linePt2):
+        # Perform point-in-box collision check
+        boxPt1 = np.array([box[0], box[1], box[2]])
+        boxPt2 = np.array([box[3], box[4], box[5]])
+        return np.all(linePt1 >= boxPt1) and np.all(linePt1 <= boxPt2)
+    
+
     # %% Initialization
     # box = box[0]
     # Initialize all lines as collided.
@@ -128,6 +138,7 @@ if __name__=='__main__':
             ax.plot([line_pt1[0,0], line_pt2[0,0]], [line_pt1[0,1], line_pt2[0,1]], [line_pt1[0,2], line_pt2[0,2]], 'r')
         else:
             ax.plot([line_pt1[0,0], line_pt2[0,0]], [line_pt1[0,1], line_pt2[0,1]], [line_pt1[0,2], line_pt2[0,2]], 'b')
+    
     box1 = [[box[0], box[1], box[2]],
             [box[0+3], box[1], box[2]],
             [box[0+3], box[1+3], box[2]],
@@ -158,6 +169,7 @@ if __name__=='__main__':
     plotBox(ax, box4)
     plotBox(ax, box5)
     plotBox(ax, box6)
-    plt.show()
 
+    plt.show()
+    print(detectCollision(line_pt1, line_pt2, box)) 
 
