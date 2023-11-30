@@ -10,16 +10,65 @@ Code for RRT-Connect
 
 fk = FK()
 
+'''
+def sampleCollisionPoints(fk, nearestNode, newPoint, interpolate):
+    sampled_positions = []
+    increment = (newPoint - nearestNode)/(1 / interpolate)
+    interpolate_iter = 0
+    while (interpolate_iter != 1):
+        nearestNode = nearestNode + increment
+        sampled_positions.append(nearestNode)
+        interpolate_iter += interpolate
+    sampled_positions.append(newPoint)
+    num_samples = len(sampled_positions)
+    return sampled_positions, num_samples
+
+def isCollisionFree(fk, nearestNode, newPoint, obstacles):
+    sampled_positions, num_samples = sampleCollisionPoints(fk, nearestNode, newPoint, interpolate=0.2)
+
+    sampled_joint_positions = []
+
+    for config in sampled_positions:
+        current_joint_positions, _ = fk.forward(config)
+        sampled_joint_positions.append(current_joint_positions)
+
+    for i in range(num_samples - 1):
+        for obs in obstacles:
+            if (True in detectCollision(sampled_joint_positions[i], sampled_joint_positions[i+1], obs)):
+                #print("Robot collides with obstacles")
+                return False
+    return True
+        
+'''
+
 def check_entire_path_collision_free(fk, path, obstacles):
     collision_indices = []
     for i in range(len(path) - 1):
         if not isCollisionFree(fk, path[i], path[i+1], obstacles):
             collision_indices.append(i)
-    return True if len(collision_indices) == 0 else False
+    if len(collision_indices) == 0:
+        return True
+    return False
+'''
+def replan_segment(fk, tree_a, tree_b, start, end, map, step_size, max_attempt=100):
+    # Initialize new trees for the replanning segment
+    local_tree_a = {tuple(start): None}
+    local_tree_b = {tuple(end): None}
 
+    for i in range(max_attempt):
+        randPoint = start + np.random.random(size=start.shape) * (end - start)
+
+        # Extend a tree towards the random point
+        newPoint_a = extend(local_tree_a, randPoint, fk, map, step_size)
+        if newPoint_a is not None:
+            success, final_point = connect(local_tree_b, newPoint_a, fk, map, step_size)
+            if success:
+                return build_path(local_tree_a, local_tree_b, newPoint_a, final_point, True)
+'''
 def isCollisionFree(fk, nearestNode, newPoint, obstacles):
     joint_positions, _ = fk.forward(nearestNode)
     new_joint_positions, _ = fk.forward(newPoint)
+    
     
     for obs in obstacles:
         if (True in detectCollision(joint_positions, joint_positions, obs)):
@@ -96,6 +145,8 @@ def rrt(map, start, goal):
 
     max_iter = 5000
     step_size = 0.1
+    max_total_replans = 50
+    total_replans = 0
     is_tree_a_start = True # Flag to identify which tree is the start tree
     
     for i in range(max_iter):
@@ -110,10 +161,24 @@ def rrt(map, start, goal):
             success, final_point = connect(tree_b, newPoint_a, fk, map, step_size)
             if success:
                 path =  build_path(tree_a, tree_b, newPoint_a, final_point, is_tree_a_start)
+                #return path
                 collision_free = check_entire_path_collision_free(fk, path, map.obstacles)
 
                 print(collision_free)
-            
+                '''
+                while not collision_free and total_replans < max_total_replans:
+                    for index in collision_indices:
+                        start_segment = path[index]
+                        end_segment = path[index + 1] if index + 1 < len(path) else goal
+
+                        alternative_segment = replan_segment(fk, tree_a, tree_b, start_segment, end_segment, map, step_size)
+                        if alternative_segment is not None:
+                            path = np.concatenate((path[:index], alternative_segment, path[index+2:]))
+                            total_replans += 1
+                            break # Break the loop and recheck the path
+
+                    collision_free, collision_indices = check_entire_path_collision_free(fk, path, map.obstacles)
+                '''
                 if collision_free:
                     return path
 
@@ -126,10 +191,10 @@ def rrt(map, start, goal):
 if __name__ == '__main__':
     map_struct = loadmap("../maps/map3.txt")
     
-    start = np.array([0,-1,0,-2,0,1.57,0])
-    #start = np.array([0, 0.4, 0, -2.5, 0, 2.7, 0.707])
-    goal =  np.array([-1.2, 1.57 , 1.57, -2.07, -1.57, 1.57, 0.7])
-    #goal = np.array([1.9, 1.57, -1.57, -1.57, 1.57, 1.57, 0.707])
+    #start = np.array([0,-1,0,-2,0,1.57,0])
+    start = np.array([0, 0.4, 0, -2.5, 0, 2.7, 0.707])
+    #goal =  np.array([-1.2, 1.57 , 1.57, -2.07, -1.57, 1.57, 0.7])
+    goal = np.array([1.9, 1.57, -1.57, -1.57, 1.57, 1.57, 0.707])
     #goal =  np.array([0,-1,0,-2,0,1.57,0])
     path = rrt(deepcopy(map_struct), deepcopy(start), deepcopy(goal))
     

@@ -59,6 +59,7 @@ class PotentialFieldPlanner:
         """
 
         ## STUDENT CODE STARTS HERE
+        '''
         d = 1.0
         if np.linalg.norm(current - target)**2 > d:
             att_f = -(current - target)/np.linalg.norm(current - target)
@@ -71,7 +72,7 @@ class PotentialFieldPlanner:
         #simple proportional controller using parabolic well approach
         k_att = 1.0
         att_f = k_att * (target - current)
-        '''
+        
         ## END STUDENT CODE
         return att_f.reshape(3,1)
     
@@ -275,6 +276,12 @@ class PotentialFieldPlanner:
         joint_torques = np.zeros((1,7))
 
         for i in range(7):
+            Jv_i = np.zeros((3,7))
+            Jv_i[:, :i+1] = J_linear[:, :i+1]
+            torque_i = np.dot(Jv_i.T, joint_forces[:,i])
+            joint_torques += torque_i
+        '''
+        for i in range(7):
             Jv_i = np.zeros((3,i+1))
             Jv_i[:, :i+1] = J_linear[:, :i+1]
 
@@ -282,7 +289,8 @@ class PotentialFieldPlanner:
             torque_i = Jv_i.T @ joint_forces[:, i] 
             #joint_torques += torque_i
             joint_torques[:,:i+1] += torque_i 
-        
+        ''' #This works!!!
+
         return joint_torques.flatten()
 
     @staticmethod
@@ -331,10 +339,10 @@ class PotentialFieldPlanner:
 
         dq = np.zeros((1, 7))
         current_joint_positions, _ = PotentialFieldPlanner.fk.forward(q)
-        current_joint_positions = current_joint_positions[0:7].T # Ignore end effector position
+        current_joint_positions = current_joint_positions[:-1].T # Ignore end effector position
         # print("a",current_joint_positions)
         target_joint_positions, _ = PotentialFieldPlanner.fk.forward(target)
-        target_joint_positions = target_joint_positions[0:7].T
+        target_joint_positions = target_joint_positions[:-1].T  
         # print("b",target_joint_positions)
         #Compute forces on each joint
         joint_forces = PotentialFieldPlanner.compute_forces(target_joint_positions, map_struct.obstacles, current_joint_positions)
@@ -346,8 +354,8 @@ class PotentialFieldPlanner:
         else:
             dq = np.zeros_like(joint_torques)
         ## END STUDENT CODE
-
-        dq = joint_torques / np.linalg.norm(joint_torques)
+        #dq = joint_torques
+        dq = joint_torques 
         return dq
 
     ###############################
@@ -407,7 +415,7 @@ class PotentialFieldPlanner:
         
             # Compute gradient
             dq = PotentialFieldPlanner.compute_gradient(current_q, goal, map_struct)
-            '''
+            
             if np.linalg.norm(dq) < self.min_step_size: # Check if gradient is too small
                 stuck_counter += 1
             else:
@@ -427,15 +435,15 @@ class PotentialFieldPlanner:
                 stuck_counter = 0
 
             else:
-            '''
+            
             # Update joint angles
-            new_q = current_q + step_size * dq
+                new_q = current_q + step_size * dq
 
             # Collision Check
             current_positions, _ = PotentialFieldPlanner.fk.forward(current_q)
             new_positions, _ = PotentialFieldPlanner.fk.forward(new_q)
             collision_detected = False
-            '''
+            
             for i in range(len(current_positions)): # check collision for all joint and end effector positions
                 # Reshape the points to 2D arrays with shape (1,3)
                 start_point = current_positions[i].reshape(1,3)
@@ -443,7 +451,7 @@ class PotentialFieldPlanner:
 
                 # Check for collision
                 for obstacle in map_struct.obstacles:
-                    if any(detectCollision(start_point, end_point, obstacle)): # Collision detected
+                    if (True in detectCollision(start_point, end_point, obstacle)): # Collision detected
 
                         collision_detected = True
                         break # exit obstacle for loop if collision is detected
@@ -455,9 +463,10 @@ class PotentialFieldPlanner:
 
                 current_q = new_q
                 q_path.append(current_q)
-            '''
-            current_q = new_q
-            q_path.append(current_q)
+            
+            #current_q = new_q
+            #q_path.append(current_q)
+
 
             if PotentialFieldPlanner.q_distance(current_q, goal) < self.tol: # Check termination condition (close to goal)
                 break
