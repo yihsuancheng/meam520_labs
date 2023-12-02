@@ -17,6 +17,27 @@ def check_entire_path_collision_free(fk, path, obstacles):
             collision_indices.append(i)
     return True if len(collision_indices) == 0 else False
 
+def isjointCollisionFree(fk, newPoint, obstacles):
+    joint_positions, _ = fk.forward(newPoint)
+    for obs in obstacles:
+        for i in range(7):
+            # check whether joint i with collide with obstacles
+            if (True in detectCollision(joint_positions[i].reshape(1,3), joint_positions[i+1].reshape(1,3), obs)):
+                return True
+    return False
+
+def newPointCollisionFree(fk, nearestNode, newPoint, obstacles):
+    interval = np.array(newPoint) - np.array(nearestNode)
+    interval_range = 10
+    flag = []
+    dq = interval/interval_range
+    for i in range(interval_range):
+        q = nearestNode + i * dq
+        if isjointCollisionFree(fk, q, obstacles):
+            flag.append(q)
+    return True if len(flag) != 0 else False # if len of list is not 0 that means there is collision
+
+
 def isCollisionFree(fk, nearestNode, newPoint, obstacles):
     joint_positions, _ = fk.forward(nearestNode)
     new_joint_positions, _ = fk.forward(newPoint)
@@ -34,6 +55,20 @@ def isCollisionFree(fk, nearestNode, newPoint, obstacles):
         
     return True
 
+def newConfig(tree, point, step_size):
+    nearestNode = min(tree, key=lambda node: np.linalg.norm(np.array(node) - np.array(point)))
+    direction = np.array(point) - np.array(nearestNode)
+    length = np.linalg.norm(direction)
+    norm_vec = direction / length
+    distance = min(step_size, length)
+
+    newPoint = np.array(nearestNode) + distance * norm_vec
+    return newPoint
+
+def extend2(tree, nearestNode, newPoint):
+    tree[tuple(newPoint)] = tuple(nearestNode)
+    return tuple(newPoint)
+
 
 def extend(tree, point, fk, map, step_size):
     nearestNode = min(tree, key=lambda node: np.linalg.norm(np.array(node) - np.array(point)))
@@ -43,11 +78,13 @@ def extend(tree, point, fk, map, step_size):
     distance = min(step_size, length)
 
     newPoint = np.array(nearestNode) + distance * norm_vec
+    
     if isCollisionFree(fk, nearestNode, newPoint, map.obstacles):
         tree[tuple(newPoint)] = tuple(nearestNode)
         return tuple(newPoint)
     
     return None
+
 
 def connect(tree, point, fk, map, step_size):
     extended = True
@@ -57,11 +94,12 @@ def connect(tree, point, fk, map, step_size):
             return False, None
         
         # Check if the new point is close enough to the goal or can connect directly
-        if np.linalg.norm(np.array(newPoint) - np.array(point)) <= 0.001:
+        
+        if np.linalg.norm(np.array(newPoint) - np.array(point)) <= step_size:
             if isCollisionFree(fk, point, newPoint, map.obstacles):
                 #tree[tuple(goal)] = tuple(newPoint)
-                return True, tuple(newPoint)
-
+                    return True, tuple(newPoint)
+        
         extended = np.linalg.norm(np.array(newPoint) - np.array(point)) > step_size
     # quits the loop when the newPoint and point is close
     return True, tuple(newPoint)
@@ -94,29 +132,55 @@ def rrt(map, start, goal):
     tree_a = {tuple(start): None} #Tree from start
     tree_b = {tuple(goal): None}  #Tree from goal
 
-    max_iter = 5000
+    max_iter = 10000
     step_size = 0.1
     is_tree_a_start = True # Flag to identify which tree is the start tree
     
     for i in range(max_iter):
         # Sample random point
-        randPoint = np.random.uniform(low=lowerLim, high=upperLim)
+        randPoint = np.array([random.uniform(lowerLim[0], upperLim[0]), 
+                           random.uniform(lowerLim[1], upperLim[1]), 
+                           random.uniform(lowerLim[2], upperLim[2]), 
+                           random.uniform(lowerLim[3], upperLim[3]), 
+                           random.uniform(lowerLim[4], upperLim[4]), 
+                           random.uniform(lowerLim[5], upperLim[5]), 
+                           random.uniform(lowerLim[6], upperLim[6])])
+        
+        #randPoint = np.random.uniform(low=lowerLim, high=upperLim)
         #randPoint = lowerLim + np.random.random(size=lowerLim.shape) * (upperLim - lowerLim)
 
         # Extend tree_a towards random point
-        newPoint_a = extend(tree_a, randPoint, fk, map, step_size)
+        nearestNode = min(tree_a, key=lambda node: np.linalg.norm(np.array(node) - np.array(randPoint)))
+        #newPoint_a = extend(tree_a, randPoint, fk, map, step_size)
+        newPoint_a = newConfig(tree_a, randPoint, step_size)
+        '''
+        if newPoint_a is None:
+            continue
+        '''
+        if any(newPoint_a < lowerLim) or any(newPoint_a > upperLim):
+            continue
+
+        elif isjointCollisionFree(fk, newPoint_a, map.obstacles):
+            continue
+        
+        elif newPointCollisionFree(fk, nearestNode, newPoint_a, map.obstacles):
+            continue
+        
+        newPoint_a = extend2(tree_a, nearestNode, newPoint_a)
+
         if newPoint_a is not None:
             # Try to connect tree_b to newPoint_a
             success, final_point = connect(tree_b, newPoint_a, fk, map, step_size)
             if success:
                 path =  build_path(tree_a, tree_b, newPoint_a, final_point, is_tree_a_start)
+                
                 collision_free = check_entire_path_collision_free(fk, path, map.obstacles)
 
                 print(collision_free)
             
                 if collision_free:
                     return path
-
+                
         # Swap trees
         tree_a, tree_b = tree_b, tree_a
         is_tree_a_start = not is_tree_a_start 
@@ -124,7 +188,7 @@ def rrt(map, start, goal):
     return np.array([]) # Return empty path if no connection made
     
 if __name__ == '__main__':
-    map_struct = loadmap("../maps/map3.txt")
+    map_struct = loadmap("../maps/map1.txt")
     
     start = np.array([0,-1,0,-2,0,1.57,0])
     #start = np.array([0, 0.4, 0, -2.5, 0, 2.7, 0.707])
