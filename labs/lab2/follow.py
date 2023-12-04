@@ -108,11 +108,25 @@ class JacobianDemo():
 
         ## END STUDENT CODE
         x0 = np.array([0.307, 0, 0.487])
+        #x0 = np.array([0.5545, 0, 0.7315])
          # Direction of movement (e.g., along x-axis)
 
         xdes = x0 + np.array([0, sin(f*t)*L, 0])
         vdes = np.array([0, L*f*cos(f*t), 0])
-
+        #Move along z axis
+        #xdes = x0 + np.array([0, 0, sin(f*t)*L])
+        #vdes = np.array([0, 0, L*f*cos(f*t)])
+        '''
+        v_z = 0.01
+        z_movement = min(v_z * t, L) 
+        xdes = x0 + np.array([0, 0, z_movement])
+        
+        # Set the velocity
+        if z_movement < L:
+            vdes = np.array([0, 0, v_z])
+        else:
+            vdes = np.array([0,0,0])
+	'''
         return xdes, vdes
 
     ###################
@@ -133,9 +147,9 @@ class JacobianDemo():
     ################
 
     def follow_trajectory(self, state, trajectory):
-
+	
         if self.active:
-
+	
             try:
                 t = time_in_seconds() - self.start_time
 
@@ -201,6 +215,7 @@ if __name__ == "__main__":
     # reset arm
     print("resetting arm...")
     arm.safe_move_to_position(arm.neutral_position())
+    #arm.safe_move_to_position(np.array([0,0,0,-pi/2,0,pi/2,pi/4]))
 
     # start tracking trajectory
     JD.active = True

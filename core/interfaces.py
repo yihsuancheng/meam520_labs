@@ -106,11 +106,12 @@ class ObjectDetector:
 
 	def gazebo_cb(self,msg):
 		try:
+			# transforms end effector frame to world frame
 			(trans,rot) = self.listener.lookupTransform('world', 'endeffector',rospy.Time(0))
 			H_base_ee = R.from_quat(rot).as_matrix()
 			H_base_ee = np.append(H_base_ee, np.array(trans).reshape(3,1), axis=1)
 			H_base_ee = np.append(H_base_ee, np.array([0,0,0,1]).reshape(1,4), axis=0)
-			H_base_camera = H_base_ee @ self.H_ee_camera
+			H_base_camera = H_base_ee @ self.H_ee_camera # camera to world frame
 
 			blocks = []
 			for (name,pose) in zip(msg.name,msg.pose):

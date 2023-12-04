@@ -86,8 +86,9 @@ class JacobianDemo():
         '''# TODO: replace these!
         Rdes = np.diag([1., -1., -1.])
         ang_vdes = 0.0 * np.array([1.0, 0.0, 0.0])'''
-
+	
         ang = -np.pi + (np.pi/4.0) * sin(fx*t)
+        
         print(ang)
         r = ang * np.array([1.0, 0.0, 0.0])
         Rdes = rotvec_to_matrix(r)

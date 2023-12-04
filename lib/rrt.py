@@ -4,6 +4,7 @@ from lib.detectCollision import detectCollision
 from lib.loadmap import loadmap
 from copy import deepcopy
 from lib.calculateFK import FK
+from time import perf_counter
 '''
 Code for RRT-Connect
 '''
@@ -188,8 +189,9 @@ def rrt(map, start, goal):
     return np.array([]) # Return empty path if no connection made
     
 if __name__ == '__main__':
-    map_struct = loadmap("../maps/map1.txt")
+    map_struct = loadmap("../maps/map2.txt")
     
+    '''
     start = np.array([0,-1,0,-2,0,1.57,0])
     #start = np.array([0, 0.4, 0, -2.5, 0, 2.7, 0.707])
     goal =  np.array([-1.2, 1.57 , 1.57, -2.07, -1.57, 1.57, 0.7])
@@ -198,3 +200,49 @@ if __name__ == '__main__':
     path = rrt(deepcopy(map_struct), deepcopy(start), deepcopy(goal))
     
     print("Path: ", path)
+    '''
+
+    
+    starts = [np.array([0, -1, 0, -2, 0, 1.57, 0]),
+          np.array([0, 0.4, 0, -2.5, 0, 2.7, 0.707]),
+          np.array([0.5, 1, 0.5, -2, 0, 1.57, 0]),
+          np.array([0, -0.2, 0, -2, 0, 1.57, 0]),
+          np.array([0, -0.4, 0, -2, 0, 1.57, 0]),
+          np.array([0, -0.4, 0, -2, 0, 1.57, 0]),
+          np.array([0, 0.2, 0, -2, 0, 1.57, 0]),
+          np.array([0, -1, 0.3, -1, 0, 0.57, 0]),
+          np.array([0, 0.8, 0, -2, 0, 1.57, 0]),
+          np.array([0, -1, 0, -2, 0, 1.57, 0])]
+          
+    
+    goals = [np.array([-1.2, 1.57, 1.57, -2.07, -1.57, 1.57, 0.7]),
+         np.array([1.9, 1.57, -1.57, -1.57, 1.57, 1.57, 0.707]),
+         np.array([1.5, 0.72, 1.5, -1.07, -0.57, 2.57, 1.7]),
+         np.array([-1.2, 0.72, 0.6, -2.07, -0.57, 1.57, 0.7]),
+         np.array([-1.4, 1.27, 1.27, -1.67, -1.57, 1.57, 1.7]),
+         np.array([-1.6, 0.27, 1.27, -1.47, -0.57, 1.57, 0.75]),
+         np.array([-1.1, -1.27, 1.27, -2.07, -0.57, 1.57, 0.7]),
+         np.array([1.4, 1.27, 1.27, -2.07, -0.57, 1.57, 0.9]),
+         np.array([1.2, -1.27, 1.27, -2.07, -0.57, 2.37, 0.7]),
+         np.array([1.0, -1.47, 0.77, -1.37, -0.65, 1.37, 1.3])]
+    
+    lowerLim = np.array([-2.8973,-1.7628,-2.8973,-3.0718,-2.8973,-0.0175,-2.8973])
+    upperLim = np.array([2.8973,1.7628,2.8973,-0.0698,2.8973,3.7525,2.8973])
+
+    success = 0
+    time_list = []
+    for index in range(len(starts)):
+        start = perf_counter()
+        path = rrt(deepcopy(map_struct), deepcopy(starts[index]), deepcopy(goals[index]))
+        if len(path) != 0:
+            success += 1
+            print("Success: Path Found")
+            
+        stop = perf_counter()
+        dt = stop - start
+        time_list.append(dt)
+        print("RRT took {time:2.2f} sec. Path is.".format(time=dt))
+        print(np.round(path,4))
+    print("Success rate is ", success/len(starts))
+    print("Average Time taken ", sum(time_list)/len(time_list))
+    
